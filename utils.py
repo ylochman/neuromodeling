@@ -1,4 +1,3 @@
-from functions import *
 import numpy as np
 import matplotlib as mpl
 mpl.use('TkAgg')
@@ -21,14 +20,31 @@ def plot_fn(f, xlim, label=None):
     y = list(map(f, x))
     plt.plot(x, y, label=label)
 
-def plot_axis(xlim=(-500,500), ylim=(-500,500), xlabel='V, mV', ylabel='I, A'):
-    if xlim[0] <= 0  and xlim[1] >= 0:
-        plt.vlines(0, *ylim, 'gray', '-')
-    if ylim[0] <= 0  and ylim[1] >= 0:
-        plt.hlines(0, *xlim, 'gray', '-')
-    plt.xlabel(xlabel, fontsize=15)
-    plt.ylabel(ylabel, fontsize=15)
+def plot_axis(xlim=(-500,500), ylim=(-500,500), xlabel='V, mV', ylabel='I, A', axis=None):
+    if axis is None:
+        if xlim[0] <= 0  and xlim[1] >= 0:
+            plt.vlines(0, *ylim, 'gray', '-')
+        if ylim[0] <= 0  and ylim[1] >= 0:
+            plt.hlines(0, *xlim, 'gray', '-')
+        plt.xlabel(xlabel, fontsize=15)
+        plt.ylabel(ylabel, fontsize=15)
+    else:
+        if xlim[0] <= 0  and xlim[1] >= 0:
+            axis.vlines(0, *ylim, 'gray', '-')
+        if ylim[0] <= 0  and ylim[1] >= 0:
+            axis.hlines(0, *xlim, 'gray', '-')
+        axis.set_xlabel(xlabel, fontsize=15)
+        axis.set_ylabel(ylabel, fontsize=15)
 
+def move_sympyplot_to_axes(p, ax):
+    backend = p.backend(p)
+    backend.ax = ax
+    backend.process_series()
+    backend.ax.spines['right'].set_color('none')
+    backend.ax.spines['bottom'].set_position('zero')
+    backend.ax.spines['top'].set_color('none')
+    plt.close(backend.fig)
+    
 def plot_IV_leak_current(params, xlim, ylim, color='C0'):
     plot_fn(leak_current(params), xlim)
     plt.vlines(params['E_x'], *ylim, color, '--', alpha=0.5)
@@ -52,6 +68,34 @@ stability_type = {
 1: 'monostability',
 2: 'bistability'
 }
+
+def plot_equilibrium(x, stability, arrowlen=3, axis=None):
+    """
+    Args:
+        stability: 0 (unstable)
+                   1 (stable)
+                   2 (right half-stable)
+                   3 (left half-stable)
+    """
+    if axis is not None:
+        plt = axis
+    if stability == 0:
+        plt.scatter(x, 0, c='w', zorder=100, edgecolors='k')
+        plt.arrow(x, 0, arrowlen, 0, head_width=3, head_length=1, fc='k', ec='k', zorder=90)
+        plt.arrow(x, 0, -arrowlen, 0, head_width=3, head_length=1, fc='k', ec='k', zorder=90)
+    elif stability == 1:
+        plt.scatter(x, 0, c='k', zorder=100, edgecolors='k')
+        plt.arrow(x-arrowlen-1.5, 0, arrowlen, 0, head_width=3, head_length=1, fc='k', ec='k', zorder=90)
+        plt.arrow(x+arrowlen+1.5, 0, -arrowlen, 0, head_width=3, head_length=1, fc='k', ec='k', zorder=90)
+    elif stability == 2:
+        plt.scatter(x, 0, c='w', zorder=100, edgecolors='k')
+        plt.arrow(x+arrowlen+1.5,0,-arrowlen,0,head_width=3, head_length=1, fc='k', ec='k', zorder=90)
+        plt.arrow(x, 0, -arrowlen, 0, head_width=3, head_length=1, fc='k', ec='k', zorder=90)
+    else:
+        plt.scatter(x, 0, c='w', zorder=100, edgecolors='k')
+        plt.arrow(x, 0, arrowlen, 0, head_width=3, head_length=1, fc='k', ec='k', zorder=90)
+        plt.arrow(x-arrowlen-1.5,0,arrowlen,0,head_width=3, head_length=1, fc='k', ec='k', zorder=90)
+    
 
 def plot_phase_diagram(params_L, params_fast, I, C, xlim, ylim, x0=None, eps=0.1, max_iter=1000, arrowlen=3):
     dV = membrane_potential_derivative(params_L, params_fast, I, C)
