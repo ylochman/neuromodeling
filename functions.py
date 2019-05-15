@@ -1,6 +1,6 @@
 import numpy as np
 
-class Function(object):
+class FunctionExtended(object):
     def __init__(self, func):
         self.func = func
 
@@ -10,37 +10,37 @@ class Function(object):
     def __add__(self, other):
         def summed(*args, **kwargs):
             return self(*args, **kwargs) + other(*args, **kwargs)
-        return Function(summed)
+        return FunctionExtended(summed)
         
     def __sub__(self, other):
         def diff(*args, **kwargs):
             return self(*args, **kwargs) - other(*args, **kwargs)
-        return Function(diff)
+        return FunctionExtended(diff)
 
     def __div__(self, other):
         def divided(*args, **kwargs):
             return self(*args, **kwargs) / other(*args, **kwargs)
-        return Function(divided)
+        return FunctionExtended(divided)
 
     def __mul__(self, other):
         def multiplied(*args, **kwargs):
             return self(*args, **kwargs) * other(*args, **kwargs)
-        return Function(multiplied)
+        return FunctionExtended(multiplied)
         
     def constmul(self, alpha):
         def constmultiplied(*args, **kwargs):
             return self(*args, **kwargs) * alpha
-        return Function(constmultiplied)
+        return FunctionExtended(constmultiplied)
     
     def constdiv(self, alpha):
         def constdivided(*args, **kwargs):
             return self(*args, **kwargs) / alpha
-        return Function(constdivided)
+        return FunctionExtended(constdivided)
         
     def __matmul__(self, other):
         def composed(*args, **kwargs):
             return self(other(*args, **kwargs))
-        return Function(composed)
+        return FunctionExtended(composed)
         
     __rmul__ = __mul__
 
@@ -107,14 +107,14 @@ def leak_current(params):
     """
     E_x = params['E_x']
     g = params['g']
-    return Function(lambda V: g * (V - E_x))
+    return FunctionExtended(lambda V: g * (V - E_x))
 
 def activation(params):
     """Returns an (in)activation as a function of V
     """
     k = params['k']
     V_half = params['V_half']
-    return Function(lambda V: sigmoid((V - V_half) / k))
+    return FunctionExtended(lambda V: sigmoid((V - V_half) / k))
 
 def instantaneous_current(params):
     """Returns an instantaneous current as a function of V
@@ -123,12 +123,12 @@ def instantaneous_current(params):
     V_half = params['V_half']
     E_x = params['E_x']
     g = params['g']
-    return Function(lambda V: sigmoid((V - V_half) / k) * g * (V - E_x))
+    return FunctionExtended(lambda V: sigmoid((V - V_half) / k) * g * (V - E_x))
 
 def membrane_potential_derivative(params_L, params_fast, I, C):
     I_L = leak_current(params_L)
     I_inst = instantaneous_current(params_fast)
-    return Function(lambda V: (I - I_L(V) - I_inst(V)) / C)
+    return FunctionExtended(lambda V: (I - I_L(V) - I_inst(V)) / C)
 
 def membrane_potential_second_derivative(params_L, params_fast, I, C):
     g_L = params_L['g']
@@ -136,4 +136,4 @@ def membrane_potential_second_derivative(params_L, params_fast, I, C):
     E_x = params_fast['E_x']
     k = params_fast['k']
     m = activation(params_fast)
-    return Function(lambda V: - 1 / C * (g_L + g_x * ((m(V) - m(V) ** 2) / k * (V - E_x) + m(V))))
+    return FunctionExtended(lambda V: - 1 / C * (g_L + g_x * ((m(V) - m(V) ** 2) / k * (V - E_x) + m(V))))
