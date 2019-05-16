@@ -5,6 +5,7 @@ from matplotlib import pyplot as plt
 import seaborn as sns
 sns.set_style('darkgrid')
 from scipy.integrate import odeint
+from functions import *
 
 def is_stable(x, f, eps=0.1):
     if f(x-eps) > 0 and f(x+eps) < 0:
